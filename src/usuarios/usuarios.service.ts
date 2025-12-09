@@ -136,4 +136,28 @@ export class UsuariosService {
     const result = await this.usuariosRepository.delete(id);
     return (result.affected || 0) > 0;
   }
+
+  // Buscar usuario por email (para autenticación)
+  async findByEmail(email: string): Promise<Usuario | null> {
+    return this.usuariosRepository.findOne({
+      where: { email },
+      select: ['id', 'email', 'password', 'estado', 'avatar', 'creado_el'],
+    });
+  }
+
+  // Validar contraseña
+  async validatePassword(email: string, password: string): Promise<Omit<Usuario, 'password'> | null> {
+    const usuario = await this.findByEmail(email);
+    if (!usuario) {
+      return null;
+    }
+
+    // Comparar password con MD5
+    const hashedPassword = this.encryptPasswordMD5(password);
+    if (usuario.password !== hashedPassword) {
+      return null;
+    }
+
+    return this.excludePassword(usuario);
+  }
 }

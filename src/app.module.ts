@@ -9,6 +9,8 @@ import { CategoriasModule } from './categorias/categorias.module';
 import { Categoria } from './categorias/entities/categoria.entity';
 import { ProductosModule } from './productos/productos.module';
 import { Producto } from './productos/entities/producto.entity';
+import { AuthModule } from './auth/auth.module';
+import { TokenWhitelist } from './auth/entities/token-whitelist.entity';
 
 @Module({
   imports: [
@@ -23,13 +25,14 @@ import { Producto } from './productos/entities/producto.entity';
       username: process.env.DB_USERNAME || 'root',
       password: process.env.DB_PASSWORD || '',
       database: process.env.DB_NAME || 'tienda_db',
-      entities: [Usuario, Categoria, Producto],
+      entities: [Usuario, Categoria, Producto, TokenWhitelist],
       synchronize: false,
       logging: process.env.NODE_ENV === 'development',
     }),
     UsuariosModule,
     CategoriasModule,
     ProductosModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
