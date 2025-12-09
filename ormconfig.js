@@ -1,0 +1,21 @@
+require('dotenv').config();
+const { DataSource } = require('typeorm');
+
+const AppDataSource = new DataSource({
+  type: 'mysql',
+  host: process.env.DB_HOST || 'localhost',
+  port: parseInt(process.env.DB_PORT || '3306'),
+  username: process.env.DB_USERNAME || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'tienda_db',
+  entities: [
+    'dist/src/usuarios/entities/*.js',
+    'dist/src/categorias/entities/*.js',
+    'dist/src/productos/entities/*.js',
+  ],
+  migrations: ['dist/src/database/migrations/*.js'],
+  synchronize: false,
+  logging: true,
+});
+
+module.exports = { AppDataSource };
