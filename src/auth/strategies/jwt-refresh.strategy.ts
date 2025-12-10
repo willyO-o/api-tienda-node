@@ -7,7 +7,7 @@ import { TokenWhitelistService } from '../services/token-whitelist.service';
 export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
   constructor(private tokenWhitelistService: TokenWhitelistService) {
     super({
-      jwtFromRequest: ExtractJwt.fromBodyField('refresh_token'),
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey: process.env.JWT_REFRESH_SECRET || 'tu-secreto-refresh-aqui',
     });

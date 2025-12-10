@@ -4,10 +4,11 @@ import { Repository } from 'typeorm';
 import { Producto } from './entities/producto.entity';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
+import { ProductoResponseDto } from './dto/producto-response.dto';
 import { CategoriasService } from '../categorias/categorias.service';
 
 export interface PaginationResult {
-  data: Producto[];
+  data: ProductoResponseDto[];
   total: number;
   page: number;
   pageSize: number;
@@ -22,7 +23,21 @@ export class ProductosService {
     private categoriasService: CategoriasService,
   ) {}
 
-  async create(createProductoDto: CreateProductoDto): Promise<Producto> {
+  private mapProductoResponse(producto: Producto): ProductoResponseDto {
+    return {
+      id: producto.id,
+      titulo: producto.titulo,
+      descripcion: producto.descripcion,
+      imagen: producto.imagen,
+      precio: producto.precio,
+      stock: producto.stock,
+      categoria_id: producto.categoria_id,
+      categoria_nombre: producto.categoria?.categoria || undefined,
+      creado_el: producto.creado_el,
+    };
+  }
+
+  async create(createProductoDto: CreateProductoDto): Promise<ProductoResponseDto> {
     // Validar que la categoría exista
     const categoria = await this.categoriasService.findOne(createProductoDto.categoria_id);
     if (!categoria) {
@@ -37,7 +52,8 @@ export class ProductosService {
     }
 
     const producto = this.productosRepository.create(createProductoDto);
-    return this.productosRepository.save(producto);
+    const savedProducto = await this.productosRepository.save(producto);
+    return this.mapProductoResponse(savedProducto);
   }
 
   async findAll(
@@ -48,7 +64,8 @@ export class ProductosService {
   ): Promise<PaginationResult> {
     const skip = (page - 1) * pageSize;
 
-    const queryBuilder = this.productosRepository.createQueryBuilder('producto');
+    const queryBuilder = this.productosRepository.createQueryBuilder('producto')
+      .leftJoinAndSelect('producto.categoria', 'categoria');
 
     // Agregar búsqueda si existe
     if (search) {
@@ -67,14 +84,20 @@ export class ProductosService {
       }
     }
 
+    // Ordenar descendentemente por ID
+    queryBuilder.orderBy('producto.id', 'DESC');
+
     // Aplicar paginación
     queryBuilder.skip(skip).take(pageSize);
 
     const [data, total] = await queryBuilder.getManyAndCount();
     const totalPages = Math.ceil(total / pageSize);
 
+    // Mapear productos con nombre de categoría
+    const mappedData = data.map(producto => this.mapProductoResponse(producto));
+
     return {
-      data,
+      data: mappedData,
       total,
       page,
       pageSize,
@@ -82,17 +105,22 @@ export class ProductosService {
     };
   }
 
-  async findOne(id: number): Promise<Producto | null> {
-    return this.productosRepository.findOne({
+  async findOne(id: number): Promise<ProductoResponseDto | null> {
+    const producto = await this.productosRepository.findOne({
       where: { id },
+      relations: ['categoria'],
     });
+    return producto ? this.mapProductoResponse(producto) : null;
   }
 
   async update(
     id: number,
     updateProductoDto: UpdateProductoDto,
-  ): Promise<Producto | null> {
-    const producto = await this.findOne(id);
+  ): Promise<ProductoResponseDto | null> {
+    const producto = await this.productosRepository.findOne({
+      where: { id },
+      relations: ['categoria'],
+    });
     if (!producto) {
       throw new NotFoundException(`Producto con id ${id} no encontrado`);
     }
@@ -108,7 +136,8 @@ export class ProductosService {
     }
 
     await this.productosRepository.update(id, updateProductoDto);
-    return this.findOne(id);
+    const updated = await this.findOne(id);
+    return updated;
   }
 
   async remove(id: number): Promise<boolean> {

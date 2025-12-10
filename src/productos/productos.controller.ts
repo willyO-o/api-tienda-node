@@ -10,7 +10,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ProductosService, PaginationResult } from './productos.service';
-import { Producto } from './entities/producto.entity';
+import { ProductoResponseDto } from './dto/producto-response.dto';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
 
@@ -19,7 +19,7 @@ export class ProductosController {
   constructor(private productosService: ProductosService) {}
 
   @Post()
-  async create(@Body() createProductoDto: CreateProductoDto): Promise<Producto> {
+  async create(@Body() createProductoDto: CreateProductoDto): Promise<ProductoResponseDto> {
     return this.productosService.create(createProductoDto);
   }
 
@@ -37,7 +37,7 @@ export class ProductosController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<Producto> {
+  async findOne(@Param('id') id: string): Promise<ProductoResponseDto> {
     const producto = await this.productosService.findOne(parseInt(id));
     if (!producto) {
       throw new NotFoundException(`Producto con id ${id} no encontrado`);
@@ -49,7 +49,7 @@ export class ProductosController {
   async update(
     @Param('id') id: string,
     @Body() updateProductoDto: UpdateProductoDto,
-  ): Promise<Producto | null> {
+  ): Promise<ProductoResponseDto | null> {
     return this.productosService.update(parseInt(id), updateProductoDto);
   }
 

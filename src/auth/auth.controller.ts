@@ -14,7 +14,6 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { LoginDto } from './dto/login.dto';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -41,7 +40,7 @@ export class AuthController {
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtRefreshGuard)
-  async refresh(@Request() req: any, @Body() refreshTokenDto: RefreshTokenDto): Promise<AuthResponse> {
+  async refresh(@Request() req: any): Promise<AuthResponse> {
     const oldRefreshJti = req.user.jti;
     return this.authService.refresh(req.user, oldRefreshJti);
   }

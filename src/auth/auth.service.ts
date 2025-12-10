@@ -8,9 +8,7 @@ export interface AuthResponse {
   access_token: string;
   refresh_token: string;
   usuario: {
-    id: number;
     email: string;
-    estado: string;
   };
 }
 
@@ -80,9 +78,7 @@ export class AuthService {
       access_token,
       refresh_token,
       usuario: {
-        id: usuario.id,
         email: usuario.email,
-        estado: usuario.estado,
       },
     };
   }
@@ -146,9 +142,7 @@ export class AuthService {
       access_token,
       refresh_token,
       usuario: {
-        id: usuarioData.id,
         email: usuarioData.email,
-        estado: usuarioData.estado,
       },
     };
   }

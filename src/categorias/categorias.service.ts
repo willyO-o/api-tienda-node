@@ -53,6 +53,9 @@ export class CategoriasService {
       );
     }
 
+    // Ordenar descendentemente por ID
+    queryBuilder.orderBy('categoria.id', 'DESC');
+
     // Aplicar paginación
     queryBuilder.skip(skip).take(pageSize);
 
@@ -83,13 +86,16 @@ export class CategoriasService {
       throw new NotFoundException(`Categoría con id ${id} no encontrada`);
     }
 
-    // Si se intenta cambiar el nombre, verificar que no exista ya
+    // Si se intenta cambiar el nombre, verificar que no exista ya CON OTRO ID
     if (updateCategoriaDto.categoria && updateCategoriaDto.categoria !== categoria.categoria) {
       const existingCategoria = await this.categoriasRepository.findOne({
-        where: { categoria: updateCategoriaDto.categoria },
+        where: { 
+          categoria: updateCategoriaDto.categoria,
+        },
       });
 
-      if (existingCategoria) {
+      // Solo rechazar si existe y tiene un ID diferente
+      if (existingCategoria && existingCategoria.id !== id) {
         throw new ConflictException(
           `La categoría "${updateCategoriaDto.categoria}" ya existe`,
         );

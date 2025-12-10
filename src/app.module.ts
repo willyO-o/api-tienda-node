@@ -11,6 +11,7 @@ import { ProductosModule } from './productos/productos.module';
 import { Producto } from './productos/entities/producto.entity';
 import { AuthModule } from './auth/auth.module';
 import { TokenWhitelist } from './auth/entities/token-whitelist.entity';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { TokenWhitelist } from './auth/entities/token-whitelist.entity';
       synchronize: false,
       logging: process.env.NODE_ENV === 'development',
     }),
+    CommonModule,
     UsuariosModule,
     CategoriasModule,
     ProductosModule,

@@ -1,8 +1,9 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as crypto from 'crypto';
 import { Usuario } from './entities/usuario.entity';
+import { AvatarService } from '../common/services/avatar.service';
 
 export interface PaginationResult {
   data: Omit<Usuario, 'password'>[];
@@ -17,6 +18,7 @@ export class UsuariosService {
   constructor(
     @InjectRepository(Usuario)
     private usuariosRepository: Repository<Usuario>,
+    private avatarService: AvatarService,
   ) {}
 
   private encryptPasswordMD5(password: string): string {
@@ -33,12 +35,41 @@ export class UsuariosService {
       throw new BadRequestException('El campo password es requerido');
     }
 
+    // Verificar si el email ya existe
+    const existingUsuario = await this.usuariosRepository.findOne({
+      where: { email: usuario.email },
+    });
+
+    if (existingUsuario) {
+      throw new ConflictException(
+        `El email "${usuario.email}" ya está registrado`,
+      );
+    }
+
     const encryptedPassword = this.encryptPasswordMD5(usuario.password);
     const newUsuario = this.usuariosRepository.create({
       ...usuario,
       password: encryptedPassword,
     });
     const savedUsuario = await this.usuariosRepository.save(newUsuario);
+
+    // Generar avatar si no viene en la solicitud
+    if (!usuario.avatar && usuario.email) {
+      try {
+        const avatarPath = await this.avatarService.generateAvatar(
+          usuario.email,
+          savedUsuario.id,
+        );
+        // Actualizar el usuario con el avatar generado
+        await this.usuariosRepository.update(savedUsuario.id, {
+          avatar: avatarPath,
+        });
+        savedUsuario.avatar = avatarPath;
+      } catch (error) {
+        // Si hay error generando avatar, continuar sin él
+        console.error('Error generating avatar:', error);
+      }
+    }
     
     // No retornar el password
     return this.excludePassword(savedUsuario);
@@ -63,6 +94,9 @@ export class UsuariosService {
         { search: `%${search}%` },
       );
     }
+
+    // Ordenar descendentemente por ID
+    queryBuilder.orderBy('usuario.id', 'DESC');
 
     // Aplicar paginación
     queryBuilder.skip(skip).take(pageSize);
@@ -110,6 +144,21 @@ export class UsuariosService {
       delete updateData.email;
     }
 
+    // Si se proporciona un nuevo avatar, eliminar el anterior
+    if (updateData.avatar) {
+      try {
+        const currentUsuario = await this.usuariosRepository.findOne({
+          where: { id },
+        });
+        if (currentUsuario && currentUsuario.avatar) {
+          await this.avatarService.deleteAvatar(currentUsuario.avatar);
+        }
+      } catch (error) {
+        // Continuar con la actualización incluso si hay error
+        console.error('Error deleting old avatar:', error);
+      }
+    }
+
     // Si se proporciona una nueva password, encriptarla
     if (updateData.password && updateData.password.trim().length > 0) {
       updateData.password = this.encryptPasswordMD5(updateData.password);
@@ -133,6 +182,20 @@ export class UsuariosService {
         'No se puede eliminar al usuario con id 1 (superadmin)',
       );
     }
+
+    // Obtener usuario para eliminar su avatar
+    const usuario = await this.usuariosRepository.findOne({ where: { id } });
+    
+    // Eliminar avatar del servidor si existe
+    if (usuario && usuario.avatar) {
+      try {
+        await this.avatarService.deleteAvatar(usuario.avatar);
+      } catch (error) {
+        // Continuar con la eliminación incluso si hay error
+        console.error('Error deleting avatar:', error);
+      }
+    }
+
     const result = await this.usuariosRepository.delete(id);
     return (result.affected || 0) > 0;
   }
