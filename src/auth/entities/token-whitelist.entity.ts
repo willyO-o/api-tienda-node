@@ -35,7 +35,7 @@ export class TokenWhitelist {
 
   @Column({
     type: 'varchar',
-    length: 100,
+    length: 500,
     nullable: true,
   })
   dispositivo: string; // Identificador del dispositivo/navegador (opcional)

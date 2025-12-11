@@ -9,13 +9,16 @@ import {
   NotFoundException,
   ForbiddenException,
   Query,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { UsuariosService, PaginationResult } from './usuarios.service';
 import { Usuario } from './entities/usuario.entity';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
-@Controller('usuarios')
+@Controller('api/v1/usuarios')
 export class UsuariosController {
   constructor(private usuariosService: UsuariosService) {}
 
@@ -25,6 +28,7 @@ export class UsuariosController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard)
   async findAll(
     @Query('page') page: string = '1',
     @Query('pageSize') pageSize: string = '10',
@@ -36,6 +40,7 @@ export class UsuariosController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
   async findOne(@Param('id') id: string): Promise<Omit<Usuario, 'password'>> {
     try {
       const usuario = await this.usuariosService.findOne(parseInt(id));
@@ -52,6 +57,7 @@ export class UsuariosController {
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard)
   async update(
     @Param('id') id: string,
     @Body() updateUsuarioDto: UpdateUsuarioDto,
@@ -60,6 +66,7 @@ export class UsuariosController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   async remove(@Param('id') id: string): Promise<{ success: boolean }> {
     const success = await this.usuariosService.remove(parseInt(id));
     return { success };

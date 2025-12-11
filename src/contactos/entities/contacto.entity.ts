@@ -1,23 +1,33 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 
-@Entity('categorias')
-export class Categoria {
+@Entity('contactos')
+export class Contacto {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column({
     type: 'varchar',
     length: 255,
-    unique: true,
   })
-  categoria: string;
+  nombre_completo: string;
+
+  @Column({
+    type: 'varchar',
+    length: 255,
+  })
+  correo: string;
+
+  @Column({
+    type: 'longtext',
+  })
+  mensaje: string;
 
   @Column({
     type: 'varchar',
     length: 50,
-    default: 'activo',
+    default: 'pendiente',
   })
-  estado: string;
+  estado: string; // pendiente, leido, respondido
 
   @CreateDateColumn({
     type: 'timestamp',

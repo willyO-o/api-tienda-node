@@ -8,17 +8,20 @@ import {
   Delete,
   NotFoundException,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ProductosService, PaginationResult } from './productos.service';
 import { ProductoResponseDto } from './dto/producto-response.dto';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
-@Controller('productos')
+@Controller('api/v1/productos')
 export class ProductosController {
   constructor(private productosService: ProductosService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   async create(@Body() createProductoDto: CreateProductoDto): Promise<ProductoResponseDto> {
     return this.productosService.create(createProductoDto);
   }
@@ -46,6 +49,7 @@ export class ProductosController {
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard)
   async update(
     @Param('id') id: string,
     @Body() updateProductoDto: UpdateProductoDto,
@@ -54,6 +58,7 @@ export class ProductosController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   async remove(@Param('id') id: string): Promise<{ success: boolean }> {
     const success = await this.productosService.remove(parseInt(id));
     return { success };

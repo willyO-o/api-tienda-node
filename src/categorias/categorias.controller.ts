@@ -8,17 +8,20 @@ import {
   Delete,
   NotFoundException,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { CategoriasService, PaginationResult } from './categorias.service';
 import { Categoria } from './entities/categoria.entity';
 import { CreateCategoriaDto } from './dto/create-categoria.dto';
 import { UpdateCategoriaDto } from './dto/update-categoria.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
-@Controller('categorias')
+@Controller('api/v1/categorias')
 export class CategoriasController {
   constructor(private categoriasService: CategoriasService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   async create(@Body() createCategoriaDto: CreateCategoriaDto): Promise<Categoria> {
     return this.categoriasService.create(createCategoriaDto);
   }
@@ -35,6 +38,7 @@ export class CategoriasController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
   async findOne(@Param('id') id: string): Promise<Categoria> {
     const categoria = await this.categoriasService.findOne(parseInt(id));
     if (!categoria) {
@@ -44,6 +48,7 @@ export class CategoriasController {
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard)
   async update(
     @Param('id') id: string,
     @Body() updateCategoriaDto: UpdateCategoriaDto,
@@ -52,6 +57,7 @@ export class CategoriasController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   async remove(@Param('id') id: string): Promise<{ success: boolean }> {
     const success = await this.categoriasService.remove(parseInt(id));
     return { success };

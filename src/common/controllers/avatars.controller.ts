@@ -3,7 +3,7 @@ import type { Response } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
 
-@Controller('avatars')
+@Controller('api/v1/avatars')
 export class AvatarsController {
   @Get(':filename')
   async getAvatar(

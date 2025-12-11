@@ -119,11 +119,11 @@ export class UsuariosService {
   }
 
   async findOne(id: number): Promise<Omit<Usuario, 'password'> | null> {
-    if (id === 1) {
-      throw new ForbiddenException(
-        'No se puede acceder al usuario con id 1 (superadmin)',
-      );
-    }
+    // if (id === 1) {
+    //   throw new ForbiddenException(
+    //     'No se puede acceder al usuario con id 1 (superadmin)',
+    //   );
+    // }
     const usuario = await this.usuariosRepository.findOne({
       where: { id },
     });

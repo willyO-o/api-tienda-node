@@ -12,6 +12,7 @@ const AppDataSource = new DataSource({
     'dist/src/usuarios/entities/*.js',
     'dist/src/categorias/entities/*.js',
     'dist/src/productos/entities/*.js',
+    'dist/src/contactos/entities/*.js',
   ],
   migrations: ['dist/src/database/migrations/*.js'],
   synchronize: false,
